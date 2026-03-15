@@ -15,6 +15,61 @@ var curSlide = 0;
 var TOTAL_SLIDES = 4;
 var sliderTimer = null;
 
+function animateActiveSlide() {
+  if (!window.gsap) return;
+  var active = document.querySelector('#slides .slide.active');
+  if (!active) return;
+  var textParts = active.querySelectorAll('.slide-eyebrow, .slide-title, .slide-desc, .slide-actions .btn');
+  var card = active.querySelector('.slide-preview-card');
+  gsap.killTweensOf(textParts);
+  gsap.killTweensOf(card);
+  var tl = gsap.timeline();
+  tl.fromTo(textParts,
+    { y: 22, opacity: 0 },
+    { y: 0, opacity: 1, duration: 0.3, ease: 'power3.out', clearProps: 'transform' },
+    0
+  );
+  if (card) {
+    tl.fromTo(card,
+      { x: 28, opacity: 0, scale: 0.98 },
+      { x: 0, opacity: 1, scale: 1, duration: 0.3, ease: 'power3.out', clearProps: 'transform' },
+      0
+    );
+  }
+}
+
+function initGsapAnimations() {
+  if (!window.gsap) return;
+  if (window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
+
+  var hero = document.querySelector('#hero');
+  if (hero) {
+    gsap.fromTo(hero,
+      { opacity: 0.92 },
+      { opacity: 1, duration: 0.2, ease: 'power2.out' }
+    );
+  }
+
+  if (window.ScrollTrigger) {
+    gsap.utils.toArray('.reveal').forEach(function(el) {
+      ScrollTrigger.create({
+        trigger: el,
+        start: 'top 88%',
+        once: true,
+        onEnter: function() {
+          el.classList.add('in');
+          gsap.fromTo(el,
+            { y: 24, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.28, ease: 'power2.out', clearProps: 'transform' }
+          );
+        }
+      });
+    });
+  }
+
+  animateActiveSlide();
+}
+
 function goSlide(n) {
   var wrap = document.getElementById('slides');
   var slides = document.querySelectorAll('#slides .slide');
@@ -31,10 +86,12 @@ function goSlide(n) {
   curSlide = next;
   slides.forEach(function(slide, i) { slide.classList.toggle('active', i === curSlide); });
   document.querySelectorAll('.sdot').forEach(function(d, i) { d.classList.toggle('active', i === curSlide); });
+  animateActiveSlide();
 }
 function moveSlide(dir) { clearInterval(sliderTimer); goSlide(curSlide + dir); startAutoSlide(); }
 function startAutoSlide() { sliderTimer = setInterval(function() { goSlide(curSlide + 1); }, 5000); }
 document.querySelectorAll('#slides .slide').forEach(function(slide, i) { slide.classList.toggle('active', i === 0); });
+initGsapAnimations();
 startAutoSlide();
 
 /* ── Testimonials slider ── */
