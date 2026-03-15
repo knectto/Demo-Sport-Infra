@@ -114,16 +114,36 @@ var PROJECTS = [
 function renderProjects(filter) {
   var grid = document.getElementById('proj-grid');
   clearProject3d();
+  var getProjectImage = function(p) {
+    if (p.name.indexOf('Pickleball') !== -1) return './images/preview_pickleball.png';
+    var map = {
+      turf: './images/preview_turf.png',
+      tennis: './images/preview_tennis.png',
+      basketball: './images/preview_basketball.png',
+      track: './images/preview_track.png',
+      padel: './images/preview_padel.png',
+      badminton: './images/preview_badminton.png'
+    };
+    return map[p.cat] || './images/preview_turf.png';
+  };
+  var getProjectBadge = function(p) {
+    var map = {
+      turf: '⚽ Real Site Photo',
+      tennis: '🎾 Real Site Photo',
+      basketball: '🏀 Real Site Photo',
+      track: '🏃 Real Site Photo',
+      padel: '🎯 Real Site Photo',
+      badminton: '🏸 Real Site Photo'
+    };
+    return p.name.indexOf('Pickleball') !== -1 ? '🏓 Real Site Photo' : (map[p.cat] || '📸 Real Site Photo');
+  };
   var filtered = filter === 'all' ? PROJECTS : PROJECTS.filter(function(p) { return p.cat === filter; });
   grid.innerHTML = filtered.map(function(p, i) {
-    return '<div class="proj-card reveal' + (i%3===1?' d1':i%3===2?' d2':'') + '"><div class="proj-canvas-wrap"><canvas id="pc-' + i + '" style="width:100%;height:100%;display:block"></canvas><div class="svc-mini-tip">🖱️ Drag</div></div><div class="proj-info"><div class="proj-sport">' + p.sport + '</div><div class="proj-name">' + p.name + '</div><div class="proj-desc">' + p.desc + '</div><div class="proj-meta"><span class="proj-meta-item">' + p.loc + '</span><span class="proj-meta-item">' + p.client + '</span><span class="proj-meta-item">🏗️ ' + p.type + '</span></div></div></div>';
+    var img = getProjectImage(p);
+    var badge = getProjectBadge(p);
+    return '<div class="proj-card reveal' + (i%3===1?' d1':i%3===2?' d2':'') + '"><div class="proj-img-wrap"><div class="proj-img-bg" style="background-image:url(\'' + img + '\')"></div><div class="proj-img-badge">' + badge + '</div><div class="proj-img-overlay"><span>' + p.sport + '</span></div></div><div class="proj-info"><div class="proj-sport">' + p.sport + '</div><div class="proj-name">' + p.name + '</div><div class="proj-desc">' + p.desc + '</div><div class="proj-meta"><span class="proj-meta-item">' + p.loc + '</span><span class="proj-meta-item">' + p.client + '</span><span class="proj-meta-item">🏗️ ' + p.type + '</span></div></div></div>';
   }).join('');
   grid.querySelectorAll('.reveal').forEach(function(r) { rvObs.observe(r); });
-  filtered.forEach(function(p, i) {
-    var typeMap = { turf:'football', tennis:'tennis', basketball:'basketball', track:'track', padel:'padel', badminton:'badminton' };
-    var t = typeMap[p.cat] || 'football';
-    lazy3d('pc-' + i, function(sc) { buildCourt(sc, t); }, { h: 220, camY: 10, camZ: 14 });
-  });
 }
 
 function filterProj(el, cat) {
