@@ -18,13 +18,12 @@ var sliderTimer = null;
 function goSlide(n) {
   var wrap = document.getElementById('slides');
   var next = (n + TOTAL_SLIDES) % TOTAL_SLIDES;
-  // Detect wrap-around (going past last → first or past first → last)
-  var isWrap = (n >= TOTAL_SLIDES) || (n < 0);
-  if (isWrap) {
-    // Jump instantly (no transition) then restore
+  // Fix only the slide 4 -> slide 1 loop transition
+  var isFourthToFirst = (curSlide === TOTAL_SLIDES - 1) && (n >= TOTAL_SLIDES);
+  if (isFourthToFirst) {
     wrap.style.transition = 'none';
     wrap.style.transform = 'translateX(-' + (next * 100) + '%)';
-    wrap.offsetWidth; // force reflow so transition:none takes effect
+    wrap.offsetWidth;
     wrap.style.transition = '';
   } else {
     wrap.style.transform = 'translateX(-' + (next * 100) + '%)';
