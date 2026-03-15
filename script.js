@@ -16,8 +16,20 @@ var TOTAL_SLIDES = 4;
 var sliderTimer = null;
 
 function goSlide(n) {
-  curSlide = (n + TOTAL_SLIDES) % TOTAL_SLIDES;
-  document.getElementById('slides').style.transform = 'translateX(-' + (curSlide * 100) + '%)';
+  var wrap = document.getElementById('slides');
+  var next = (n + TOTAL_SLIDES) % TOTAL_SLIDES;
+  // Detect wrap-around (going past last → first or past first → last)
+  var isWrap = (n >= TOTAL_SLIDES) || (n < 0);
+  if (isWrap) {
+    // Jump instantly (no transition) then restore
+    wrap.style.transition = 'none';
+    wrap.style.transform = 'translateX(-' + (next * 100) + '%)';
+    wrap.offsetWidth; // force reflow so transition:none takes effect
+    wrap.style.transition = '';
+  } else {
+    wrap.style.transform = 'translateX(-' + (next * 100) + '%)';
+  }
+  curSlide = next;
   document.querySelectorAll('.sdot').forEach(function(d, i) { d.classList.toggle('active', i === curSlide); });
 }
 function moveSlide(dir) { clearInterval(sliderTimer); goSlide(curSlide + dir); startAutoSlide(); }
