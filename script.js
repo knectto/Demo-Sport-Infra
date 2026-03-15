@@ -17,10 +17,10 @@ var sliderTimer = null;
 
 function goSlide(n) {
   var wrap = document.getElementById('slides');
+  var slides = document.querySelectorAll('#slides .slide');
   var next = (n + TOTAL_SLIDES) % TOTAL_SLIDES;
-  // Fix only the slide 4 -> slide 1 loop transition
-  var isFourthToFirst = (curSlide === TOTAL_SLIDES - 1) && (n >= TOTAL_SLIDES);
-  if (isFourthToFirst) {
+  var isWrap = (n >= TOTAL_SLIDES) || (n < 0);
+  if (isWrap) {
     wrap.style.transition = 'none';
     wrap.style.transform = 'translateX(-' + (next * 100) + '%)';
     wrap.offsetWidth;
@@ -29,10 +29,12 @@ function goSlide(n) {
     wrap.style.transform = 'translateX(-' + (next * 100) + '%)';
   }
   curSlide = next;
+  slides.forEach(function(slide, i) { slide.classList.toggle('active', i === curSlide); });
   document.querySelectorAll('.sdot').forEach(function(d, i) { d.classList.toggle('active', i === curSlide); });
 }
 function moveSlide(dir) { clearInterval(sliderTimer); goSlide(curSlide + dir); startAutoSlide(); }
 function startAutoSlide() { sliderTimer = setInterval(function() { goSlide(curSlide + 1); }, 5000); }
+document.querySelectorAll('#slides .slide').forEach(function(slide, i) { slide.classList.toggle('active', i === 0); });
 startAutoSlide();
 
 /* ── Testimonials slider ── */
