@@ -16,21 +16,10 @@ var TOTAL_SLIDES = 4;
 var sliderTimer = null;
 
 function goSlide(n) {
-  var wrap = document.getElementById('slides');
-  var next = (n + TOTAL_SLIDES) % TOTAL_SLIDES;
-  // Detect wrap-around (going past last → first or past first → last)
-  var isWrap = (n >= TOTAL_SLIDES) || (n < 0);
-  if (isWrap) {
-    // Jump instantly (no transition) then restore
-    wrap.style.transition = 'none';
-    wrap.style.transform = 'translateX(-' + (next * 100) + '%)';
-    wrap.offsetWidth; // force reflow so transition:none takes effect
-    wrap.style.transition = '';
-  } else {
-    wrap.style.transform = 'translateX(-' + (next * 100) + '%)';
-  }
-  curSlide = next;
+  curSlide = (n + TOTAL_SLIDES) % TOTAL_SLIDES;
+  document.getElementById('slides').style.transform = 'translateX(-' + (curSlide * 100) + '%)';
   document.querySelectorAll('.sdot').forEach(function(d, i) { d.classList.toggle('active', i === curSlide); });
+  document.querySelectorAll('.slide').forEach(function(s, i) { s.classList.toggle('active', i === curSlide); });
 }
 function moveSlide(dir) { clearInterval(sliderTimer); goSlide(curSlide + dir); startAutoSlide(); }
 function startAutoSlide() { sliderTimer = setInterval(function() { goSlide(curSlide + 1); }, 5000); }
@@ -111,19 +100,44 @@ var PROJECTS = [
   { cat: 'tennis',     sport: '🎾 Tennis Court',     name: 'Hotel Grand — Court Renovation',     loc: '📍 Mumbai, MH',     client: '🏨 Hotel Chain',         type: 'Acrylic — Renovation',   desc: 'Full renovation of hotel tennis court — resurfacing, line marking, net replacement, and perimeter upgrade.' },
 ];
 
+/* Image map: sport category → preview photo */
+var PROJ_IMGS = {
+  turf:       './images/preview_turf.png',
+  tennis:     './images/preview_tennis.png',
+  basketball: './images/preview_basketball.png',
+  track:      './images/preview_track.png',
+  padel:      './images/preview_padel.png',
+  badminton:  './images/preview_badminton.png',
+  pickleball: './images/preview_pickleball.png',
+  indoor:     './images/preview_indoor.png'
+};
+
 function renderProjects(filter) {
   var grid = document.getElementById('proj-grid');
   clearProject3d();
   var filtered = filter === 'all' ? PROJECTS : PROJECTS.filter(function(p) { return p.cat === filter; });
   grid.innerHTML = filtered.map(function(p, i) {
-    return '<div class="proj-card reveal' + (i%3===1?' d1':i%3===2?' d2':'') + '"><div class="proj-canvas-wrap"><canvas id="pc-' + i + '" style="width:100%;height:100%;display:block"></canvas><div class="svc-mini-tip">🖱️ Drag</div></div><div class="proj-info"><div class="proj-sport">' + p.sport + '</div><div class="proj-name">' + p.name + '</div><div class="proj-desc">' + p.desc + '</div><div class="proj-meta"><span class="proj-meta-item">' + p.loc + '</span><span class="proj-meta-item">' + p.client + '</span><span class="proj-meta-item">🏗️ ' + p.type + '</span></div></div></div>';
+    var img = PROJ_IMGS[p.cat] || PROJ_IMGS.turf;
+    var delay = i%3===1?' d1':i%3===2?' d2':'';
+    return '<div class="proj-card reveal' + delay + '">' +
+      '<div class="proj-img-wrap">' +
+        '<div class="proj-img-bg" style="background-image:url(\'' + img + '\')"></div>' +
+        '<div class="proj-img-badge">' + p.sport + '</div>' +
+        '<div class="proj-img-overlay"><span>' + p.type + '</span></div>' +
+      '</div>' +
+      '<div class="proj-info">' +
+        '<div class="proj-sport">' + p.sport + '</div>' +
+        '<div class="proj-name">' + p.name + '</div>' +
+        '<div class="proj-desc">' + p.desc + '</div>' +
+        '<div class="proj-meta">' +
+          '<span class="proj-meta-item">' + p.loc + '</span>' +
+          '<span class="proj-meta-item">' + p.client + '</span>' +
+          '<span class="proj-meta-item">🏗️ ' + p.type + '</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
   }).join('');
   grid.querySelectorAll('.reveal').forEach(function(r) { rvObs.observe(r); });
-  filtered.forEach(function(p, i) {
-    var typeMap = { turf:'football', tennis:'tennis', basketball:'basketball', track:'track', padel:'padel', badminton:'badminton' };
-    var t = typeMap[p.cat] || 'football';
-    lazy3d('pc-' + i, function(sc) { buildCourt(sc, t); }, { h: 220, camY: 10, camZ: 14 });
-  });
 }
 
 function filterProj(el, cat) {
@@ -264,24 +278,10 @@ function buildCourt(sc, type) {
 }
 
 /* ── Register all 3D canvases ── */
-lazy3d('hero-c1', function(sc) { buildCourt(sc, 'football'); }, { h: 380, camY: 10, camZ: 16 });
-lazy3d('hero-c2', function(sc) { buildCourt(sc, 'tennis'); },   { h: 380, camY: 10, camZ: 14 });
-lazy3d('hero-c3', function(sc) { buildCourt(sc, 'track'); },    { h: 380, camY: 14, camZ: 14 });
-lazy3d('hero-c4', function(sc) { buildCourt(sc, 'padel'); },    { h: 380, camY: 10, camZ: 14 });
+/* Hero slides now use real image preview cards — no 3D canvases needed */
 
-lazy3d('a-canvas', function(sc) { buildCourt(sc, 'basketball'); }, { h: 420, camY: 13, camZ: 17 });
+/* About section now uses real image panel — no canvas needed */
 
-[['s1','football'],['s2','tennis'],['s3','basketball'],['s4','badminton'],
- ['s5','track'],['s6','padel'],['s7','pickleball'],['s8','indoor']
-].forEach(function(pair) {
-  var id = pair[0], type = pair[1];
-  lazy3d(id, function(sc) { buildCourt(sc, type); }, { h: 160, camY: 9, camZ: 13 });
-});
-
-lazy3d('w-canvas', function(sc) {
-  var out = new THREE.Mesh(new THREE.CircleGeometry(9, 64), new THREE.MeshStandardMaterial({ color: 0xcc4400 })); out.rotation.x = -Math.PI / 2; sc.add(out);
-  var inn = new THREE.Mesh(new THREE.CircleGeometry(6, 64), new THREE.MeshStandardMaterial({ color: 0x2d8a3a })); inn.rotation.x = -Math.PI / 2; inn.position.y = .03; sc.add(inn);
-  for (var r = 6.1; r <= 9.2; r += .5) { var lr = new THREE.Mesh(new THREE.TorusGeometry(r, .04, 6, 64), new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: .5, transparent: true })); lr.rotation.x = Math.PI / 2; lr.position.y = .04; sc.add(lr); }
-}, { h: 380, camY: 16, camZ: 16 });
+/* Service mini-preview canvases replaced by real image cards */
 
 renderProjects('all');
